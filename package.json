@@ -1,0 +1,27 @@
+{
+  "name": "apostrophe-code-generator",
+  "version": "1.0.0",
+  "description": "AI-powered code generator for Apostrophe CMS modules",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "keywords": [
+    "apostrophe",
+    "cms",
+    "code-generator",
+    "ai",
+    "claude"
+  ],
+  "author": "Andrei Mateas",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.17"
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "projectName": "dw4 / abendsonneafrika",
+  "description": "Apostrophe CMS project structure analysis",
+  "CRITICAL": {
+    "moduleSystem": "ESM (ECMAScript Modules)",
+    "syntax": "export default / import (NOT module.exports / require)",
+    "apostropheVersion": "3.x uses ESM exclusively",
+    "fileExtension": ".js files with ESM syntax"
+  },
+  "structure": {
+    "root": {
+      "app.js": "Main application configuration with module registration",
+      "package.json": "Must include 'type': 'module' for ESM support"
+    },
+    "modules": {
+      "description": "All custom modules organized by type",
+      "subdirectories": {
+        "widgets": {
+          "path": "modules/widgets",
+          "description": "Reusable content components for editors",
+          "naming": "{module-name}-widget",
+          "structure": {
+            "index.js": "Widget configuration using ESM export default",
+            "views/widget.html": "Nunjucks template for rendering",
+            "ui/src/*.js": "Optional client-side JavaScript (if interactive)",
+            "ui/src/*.scss": "Optional styles (if custom styling needed)"
+          },
+          "examples": [
+            "image-widget",
+            "home-page-header-widget",
+            "search-bar-widget",
+            "faq-widget",
+            "newsletter-subscription-widget"
+          ]
+        },
+        "pieces": {
+          "path": "modules/pieces",
+          "description": "Standalone content types (like blog posts, products)",
+          "naming": "{content-type}-module",
+          "structure": {
+            "index.js": "Piece type configuration using ESM export default",
+            "views/show.html": "Optional template for single piece display",
+            "views/index.html": "Optional template for piece listing"
+          },
+          "examples": [
+            "blog-module",
+            "destination-module",
+            "partner",
+            "featured-product-module"
+          ]
+        },
+        "@apostrophecms": {
+          "path": "modules/@apostrophecms",
+          "description": "Customizations to core Apostrophe modules",
+          "examples": [
+            "@apostrophecms/page",
+            "@apostrophecms/global",
+            "@apostrophecms/home-page"
+          ]
+        },
+        "services": {
+          "path": "modules/services",
+          "description": "Backend service modules (APIs, utilities)",
+          "structure": {
+            "index.js": "Service module with methods and routes (ESM)"
+          }
+        },
+        "admin": {
+          "path": "modules/admin",
+          "description": "Admin UI customizations and tools"
+        },
+        "utilities": {
+          "path": "modules/utilities",
+          "description": "Shared utility functions and helpers"
+        },
+        "models": {
+          "path": "modules/models",
+          "description": "Data models and database schemas"
+        },
+        "pages": {
+          "path": "modules/pages",
+          "description": "Custom page types"
+        },
+        "localization": {
+          "path": "modules/localization",
+          "description": "Internationalization and translation modules"
+        },
+        "asset": {
+          "path": "modules/asset",
+          "description": "Asset management and webpack configuration"
+        },
+        "ajaxhandler": {
+          "path": "modules/ajaxhandler",
+          "description": "AJAX endpoint handlers"
+        }
+      }
+    }
+  },
+  "moduleRegistration": {
+    "location": "app.js",
+    "pattern": "modules: { 'module-name': {} }",
+    "examples": {
+      "widget": "modules: { 'image-widget': {} }",
+      "piece": "modules: { 'blog-module': {} }",
+      "service": "modules: { 'dbService': {} }"
+    }
+  },
+  "codePatterns": {
+    "widgetIndex": {
+      "moduleSystem": "ESM",
+      "correctSyntax": "export default { ... }",
+      "incorrectSyntax": "module.exports = { ... }",
+      "structure": {
+        "extend": "@apostrophecms/widget-type",
+        "options": {
+          "label": "Display name",
+          "icon": "Optional icon"
+        },
+        "fields": {
+          "add": {
+            "fieldName": {
+              "type": "string|area|select|checkboxes|relationship",
+              "label": "Field label",
+              "required": true,
+              "if": "Conditional display logic"
+            }
+          },
+          "group": "Field grouping for UI organization"
+        }
+      },
+      "example": "export default {\n  extend: '@apostrophecms/widget-type',\n  options: {\n    label: 'My Widget'\n  },\n  fields: {\n    add: {\n      title: {\n        type: 'string',\n        label: 'Title'\n      }\n    }\n  }\n};"
+    },
+    "pieceIndex": {
+      "moduleSystem": "ESM",
+      "correctSyntax": "export default { ... }",
+      "incorrectSyntax": "module.exports = { ... }",
+      "structure": {
+        "extend": "@apostrophecms/piece-type",
+        "options": {
+          "label": "Singular label",
+          "pluralLabel": "Plural label"
+        },
+        "fields": {
+          "add": "Field definitions"
+        }
+      },
+      "example": "export default {\n  extend: '@apostrophecms/piece-type',\n  options: {\n    label: 'Blog Post',\n    pluralLabel: 'Blog Posts'\n  },\n  fields: {\n    add: {\n      title: {\n        type: 'string',\n        label: 'Title',\n        required: true\n      }\n    }\n  }\n};"
+    },
+    "widgetTemplate": {
+      "syntax": "Nunjucks",
+      "dataAccess": "data.widget.fieldName",
+      "examples": [
+        "{% if data.widget.title %}...{% endif %}",
+        "{% area data.widget, 'fieldName' %}",
+        "{{ data.widget.fieldName }}"
+      ]
+    }
+  },
+  "bestPractices": {
+    "naming": {
+      "widgets": "Use suffix -widget (e.g., hero-banner-widget)",
+      "pieces": "Use suffix -module or descriptive name (e.g., blog-module)",
+      "kebabCase": "Always use kebab-case for module names"
+    },
+    "organization": {
+      "byType": "Group modules by type (widgets/, pieces/, services/)",
+      "oneFolderPerModule": "Each module in its own directory",
+      "subdirectoryLocation": "Place widgets in modules/widgets/, pieces in modules/pieces/"
+    },
+    "files": {
+      "required": "index.js (always required, using ESM export default)",
+      "optional": "views/, ui/src/ (only when needed)",
+      "template": "views/widget.html for widgets, views/show.html for pieces"
+    },
+    "syntax": {
+      "ALWAYS_USE": "ESM: export default { ... }",
+      "NEVER_USE": "CommonJS: module.exports = { ... }",
+      "imports": "Use 'import' not 'require()'",
+      "apostropheVersion": "Apostrophe 3.x is ESM-only"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "apostrophe-code-generator-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Apostrophe CMS code generation",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "apostrophe-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "apostrophe",
+    "code-generator"
+  ],
+  "author": "Andrei Mateas",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+}

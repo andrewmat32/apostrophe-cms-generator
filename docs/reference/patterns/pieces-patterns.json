@@ -1,0 +1,291 @@
+{
+  "type": "PIECES",
+  "description": "Complete piece type patterns with data flow and custom methods",
+  "moduleSystem": "ESM",
+  
+  "backendConfiguration": {
+    "file": "modules/pieces/{piece-name}/index.js",
+    "syntax": "export default { ... }",
+    "structure": {
+      "extend": {
+        "value": "@apostrophecms/piece-type",
+        "required": true,
+        "description": "Always extends the base piece type"
+      },
+      "options": {
+        "label": "Singular label (e.g., 'Blog Post')",
+        "pluralLabel": "Plural label (e.g., 'Blog Posts')",
+        "sort": {
+          "description": "Default sort order",
+          "example": {
+            "order": 1,
+            "updatedAt": -1
+          }
+        },
+        "autopublish": "Set true to skip draft/publish workflow",
+        "showPermissions": "Control who can view pieces"
+      },
+      "fields": {
+        "add": {
+          "description": "Define all editable fields for the piece",
+          "commonFields": {
+            "title": {
+              "type": "string",
+              "label": "Title",
+              "required": true,
+              "description": "Automatically creates slug field"
+            },
+            "images": {
+              "type": "area",
+              "label": "Image",
+              "options": {
+                "max": 1,
+                "widgets": { "@apostrophecms/image": {} }
+              }
+            },
+            "shortText": {
+              "type": "string",
+              "label": "Short Text",
+              "help": "Brief description for listings"
+            },
+            "content": {
+              "type": "area",
+              "label": "Content",
+              "options": {
+                "widgets": {
+                  "image": {},
+                  "@apostrophecms/rich-text": {},
+                  "spacer": {},
+                  "@apostrophecms/video": {}
+                }
+              }
+            },
+            "articleDate": {
+              "type": "date",
+              "label": "Article date",
+              "pikadayOptions": {
+                "format": "YYYY-MM-DD"
+              }
+            },
+            "relationship": {
+              "type": "relationship",
+              "label": "Related Items",
+              "withType": "other-piece-type"
+            }
+          }
+        },
+        "group": {
+          "description": "Organize fields into tabs in the piece manager",
+          "example": {
+            "basics": {
+              "label": "Basics",
+              "fields": ["title", "slug", "shortText", "images"]
+            },
+            "content": {
+              "label": "Content",
+              "fields": ["content"]
+            },
+            "utility": {
+              "fields": ["articleDate", "authorName"]
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "methods": {
+    "description": "Custom server-side methods for pieces",
+    "syntax": "methods(self) { return { ... } }",
+    "commonMethods": {
+      "importPiece": {
+        "description": "Import pieces from CSV or external source",
+        "pattern": "async importPiece() { const req = self.apos.task.getReq(); ... }",
+        "usage": "For bulk data imports and migrations"
+      },
+      "customFinder": {
+        "description": "Create custom query methods",
+        "pattern": "async findPublished(req, criteria) { return self.find(req, criteria).published(true); }"
+      },
+      "beforeInsert": {
+        "description": "Hook before piece is inserted",
+        "pattern": "async beforeInsert(req, piece) { piece.customField = await computeValue(); }"
+      },
+      "afterSave": {
+        "description": "Hook after piece is saved",
+        "pattern": "async afterSave(req, piece) { await self.updateRelated(piece); }"
+      }
+    },
+    "apostropheAPI": {
+      "find": "self.find(req, criteria) - Query builder",
+      "insert": "await self.insert(req, piece) - Create new piece",
+      "update": "await self.update(req, piece) - Update existing",
+      "publish": "await self.publish(req, piece) - Publish draft",
+      "newInstance": "self.newInstance() - Create empty piece object",
+      "database": "self.apos.dbService.findOneInCollection('aposDocs', query)"
+    }
+  },
+
+  "frontendTemplates": {
+    "description": "Pieces can have custom templates for display",
+    "files": {
+      "show.html": {
+        "path": "modules/pieces/{piece-name}/views/show.html",
+        "purpose": "Display single piece detail page",
+        "dataAccess": "data.piece.fieldName"
+      },
+      "index.html": {
+        "path": "modules/pieces/{piece-name}/views/index.html",
+        "purpose": "Display piece listing/index page",
+        "dataAccess": "data.pieces[] - array of pieces"
+      }
+    },
+    
+    "dataAccess": {
+      "singlePiece": {
+        "context": "When viewing a piece show page",
+        "available": "data.piece",
+        "examples": {
+          "title": "{{ data.piece.title }}",
+          "slug": "{{ data.piece.slug }}",
+          "content": "{% area data.piece, 'content' %}",
+          "image": "{% set img = apos.image.first(data.piece.images) %}",
+          "date": "{{ data.piece.articleDate }}",
+          "author": "{{ data.piece.authorName }}"
+        }
+      },
+      "piecesList": {
+        "context": "When viewing piece index or widget",
+        "available": "data.pieces (array)",
+        "example": "{% for piece in data.pieces %}\n  <h2>{{ piece.title }}</h2>\n  <a href='{{ piece._url }}'>Read More</a>\n{% endfor %}"
+      }
+    },
+
+    "nunjucksPatterns": {
+      "displayPiece": "{% for piece in data.pieces %}\n  <article>\n    <h2>{{ piece.title }}</h2>\n    <p>{{ piece.shortText }}</p>\n    <a href='{{ piece._url }}'>View</a>\n  </article>\n{% endfor %}",
+      "imageHandling": "{% set img = apos.image.first(piece.images) %}\n{% if img %}\n  <img src='{{ apos.attachment.url(img, { size: 'full' }) }}' alt='{{ img._alt }}'>\n{% endif %}",
+      "contentArea": "{% area piece, 'content' %}",
+      "relationships": "{% for related in piece._relatedPieces %}\n  <a href='{{ related._url }}'>{{ related.title }}</a>\n{% endfor %}"
+    }
+  },
+
+  "dataFlow": {
+    "description": "How pieces flow from creation to display",
+    "steps": [
+      "1. Admin creates/edits piece in piece manager",
+      "2. Fields are validated and saved to database",
+      "3. Piece can be in 'draft' or 'published' state",
+      "4. Published pieces are queryable on frontend",
+      "5. Pieces can be displayed on dedicated pages or in widgets",
+      "6. Custom methods can transform data before display"
+    ],
+    "queryingPieces": {
+      "inWidget": "const pieces = await self.apos.modules['blog'].find(req, {}).toArray();",
+      "withFilters": "await self.find(req, {}).published(true).sort({ createdAt: -1 }).limit(10).toArray()",
+      "relationships": "await self.find(req, {}).relationships(['_related']).toArray()"
+    }
+  },
+
+  "pieceWidgets": {
+    "description": "Pieces often have companion widgets for display",
+    "structure": {
+      "pieceType": "modules/pieces/blog-module/blog/index.js",
+      "widget": "modules/pieces/blog-module/blog-widget/index.js",
+      "pageType": "modules/pieces/blog-module/blog-page/index.js"
+    },
+    "widgetPattern": {
+      "extend": "@apostrophecms/piece-page-type",
+      "purpose": "Display piece listings or featured pieces",
+      "commonFields": {
+        "_pieces": {
+          "type": "relationship",
+          "withType": "blog",
+          "label": "Select Blog Posts",
+          "max": 5
+        }
+      }
+    }
+  },
+
+  "realWorldExample": {
+    "name": "Blog Piece Type",
+    "backend": {
+      "extend": "@apostrophecms/piece-type",
+      "options": {
+        "label": "Blog",
+        "pluralLabel": "Blogs",
+        "sort": { "order": 1, "updatedAt": -1 }
+      },
+      "fields": {
+        "title": { "type": "string", "required": true },
+        "images": { "type": "area", "max": 1, "widgets": { "@apostrophecms/image": {} } },
+        "shortText": { "type": "string", "help": "Short description" },
+        "content": { "type": "area", "widgets": { "image": {}, "@apostrophecms/rich-text": {} } },
+        "articleDate": { "type": "date" },
+        "authorName": { "type": "string" }
+      },
+      "groups": {
+        "basics": ["title", "slug", "shortText", "images"],
+        "content": ["content"],
+        "utility": ["articleDate", "authorName"]
+      }
+    },
+    "methods": {
+      "importPiece": "Imports blog posts from CSV file",
+      "workflow": "Handles draft → published lifecycle"
+    },
+    "usage": {
+      "admin": "Manage blog posts in admin bar under 'Content' group",
+      "frontend": "Display on blog index page or via blog-widget",
+      "urls": "Each piece gets automatic URL: /blogs/post-slug"
+    }
+  },
+
+  "advancedFeatures": {
+    "relationships": {
+      "description": "Link pieces to other pieces or pages",
+      "example": {
+        "_relatedBlogs": {
+          "type": "relationship",
+          "withType": "blog",
+          "label": "Related Blog Posts",
+          "max": 3
+        }
+      },
+      "access": "piece._relatedBlogs[] in templates"
+    },
+    "customMethods": {
+      "description": "Add server-side logic for data processing",
+      "examples": [
+        "Import/export functionality",
+        "Custom validation logic",
+        "API integrations",
+        "Computed fields",
+        "Search customization"
+      ]
+    },
+    "apiRoutes": {
+      "description": "Pieces auto-generate REST API endpoints",
+      "endpoints": [
+        "GET /api/v1/blog - List all blogs",
+        "GET /api/v1/blog/:id - Get single blog",
+        "POST /api/v1/blog - Create blog (admin)",
+        "PUT /api/v1/blog/:id - Update blog (admin)",
+        "DELETE /api/v1/blog/:id - Delete blog (admin)"
+      ]
+    }
+  },
+
+  "bestPractices": {
+    "naming": "Use {name}-module format (e.g., blog-module) or just name (e.g., blog)",
+    "location": "Place in modules/pieces/{piece-name}/",
+    "requiredFiles": ["index.js"],
+    "optionalFiles": ["views/show.html (piece detail)", "views/index.html (listing)"],
+    "fieldGroups": "Always group fields for better UX",
+    "slugs": "Title field auto-generates slugs",
+    "urls": "Pieces get automatic URLs based on slug",
+    "drafts": "Use draft/publish workflow for content review",
+    "relationships": "Use relationship fields to link pieces together",
+    "methods": "Add custom methods for business logic, not in templates"
+  }
+}

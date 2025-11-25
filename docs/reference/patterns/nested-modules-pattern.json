@@ -1,0 +1,167 @@
+{
+  "type": "NESTED_MODULES_PATTERN",
+  "description": "How Apostrophe 3.x uses nestedModuleSubdirs and modules.js for organization",
+  "moduleSystem": "ESM",
+  
+  "configuration": {
+    "appJs": {
+      "file": "app.js",
+      "requiredSetting": "nestedModuleSubdirs: true",
+      "purpose": "Enables automatic discovery of modules.js files in subdirectories",
+      "example": "apostrophe({\n  root: import.meta,\n  shortName: 'project-name',\n  nestedModuleSubdirs: true,\n  modules: {\n    // Main modules still go here\n  }\n});"
+    }
+  },
+
+  "modulesJsPattern": {
+    "description": "modules.js files define groups of related modules",
+    "location": "Any subdirectory under modules/",
+    "syntax": "ESM - export default { ... }",
+    "purpose": "Auto-register multiple related modules without cluttering app.js"
+  },
+
+  "realWorldExamples": {
+    "widgetsDirectory": {
+      "path": "modules/widgets/modules.js",
+      "purpose": "Register ALL widgets in one place",
+      "content": {
+        "syntax": "export default {\n  'widget-name': {},\n  'another-widget': {},\n  ...\n};",
+        "actualExample": "export default {\n  'accommodation-list-widget': {},\n  'image-widget': {},\n  'faq-widget': {},\n  'home-page-header-widget': {},\n  'newsletter-subscription-widget': {}\n};"
+      },
+      "benefits": [
+        "All widgets in one registry",
+        "Don't need to add each widget to app.js",
+        "Easy to see all available widgets",
+        "Clean separation from pieces/pages"
+      ]
+    },
+
+    "piecesDirectory": {
+      "path": "modules/pieces/modules.js",
+      "purpose": "Register ALL piece types in one place",
+      "content": {
+        "syntax": "export default {\n  'piece-name': {},\n  'another-piece': {},\n  ...\n};",
+        "actualExample": "export default {\n  'blog-module': {},\n  'destination-module': {},\n  'partner': {},\n  'text': {},\n  'info-bullet': {}\n};"
+      },
+      "benefits": [
+        "All pieces in one registry",
+        "Clear separation from widgets",
+        "Easy inventory of content types"
+      ]
+    },
+
+    "bundledModules": {
+      "description": "A module can itself contain sub-modules",
+      "example": "blog-module",
+      "structure": {
+        "path": "modules/pieces/blog-module/",
+        "files": {
+          "index.js": "Bundle configuration (usually minimal)",
+          "modules.js": "Register sub-modules within this bundle",
+          "blog/": "The piece type itself",
+          "blog-page/": "Page type for displaying blogs",
+          "blog-widget/": "Widget for showing blog posts"
+        },
+        "modulesJsContent": "export default {\n  'blog': {},\n  'blog-page': {},\n  'blog-widget': {}\n};",
+        "indexJsContent": "export default {\n  options: {\n    ignoreNoCodeWarning: true\n  }\n};"
+      },
+      "benefits": [
+        "Related modules grouped together",
+        "Piece + Page + Widget in one bundle",
+        "Cleaner project organization",
+        "Easy to move/share bundles"
+      ]
+    }
+  },
+
+  "directoryStructure": {
+    "overview": "modules/\n├── widgets/\n│   ├── modules.js (registers all widgets)\n│   ├── image-widget/\n│   │   ├── index.js\n│   │   └── views/widget.html\n│   ├── faq-widget/\n│   │   ├── index.js\n│   │   └── views/widget.html\n│   └── ...\n├── pieces/\n│   ├── modules.js (registers all pieces)\n│   ├── blog-module/ (bundle)\n│   │   ├── index.js (bundle config)\n│   │   ├── modules.js (register sub-modules)\n│   │   ├── blog/\n│   │   │   └── index.js\n│   │   ├── blog-page/\n│   │   │   └── index.js\n│   │   └── blog-widget/\n│   │       ├── index.js\n│   │       └── views/widget.html\n│   ├── partner/\n│   │   └── index.js\n│   └── ...\n├── pages/\n│   ├── modules.js\n│   └── ...\n└── services/\n    ├── modules.js\n    └── ..."
+  },
+
+  "howItWorks": {
+    "step1": "app.js sets nestedModuleSubdirs: true",
+    "step2": "Apostrophe scans modules/ directory recursively",
+    "step3": "Finds all modules.js files in subdirectories",
+    "step4": "Loads and merges all module definitions",
+    "step5": "Modules are available throughout the application",
+    "result": "Clean, organized, scalable module structure"
+  },
+
+  "registrationFlow": {
+    "traditional": {
+      "description": "Old way - everything in app.js",
+      "problem": "app.js becomes huge with 50+ modules",
+      "example": "modules: {\n  'widget1': {},\n  'widget2': {},\n  'widget3': {},\n  // ... 50 more modules\n}"
+    },
+    "nested": {
+      "description": "New way - distributed modules.js files",
+      "benefit": "app.js stays clean, modules organized by type",
+      "appJs": "modules: {\n  // Only high-level modules here\n  '@apostrophecms/seo': {},\n  'asset': {}\n}",
+      "widgetsModulesJs": "export default {\n  'widget1': {},\n  'widget2': {},\n  'widget3': {}\n};",
+      "piecesModulesJs": "export default {\n  'blog': {},\n  'product': {}\n};"
+    }
+  },
+
+  "bestPractices": {
+    "organization": {
+      "widgets": "All widgets in modules/widgets/ with modules.js registry",
+      "pieces": "All pieces in modules/pieces/ with modules.js registry",
+      "pages": "All pages in modules/pages/ with modules.js registry",
+      "services": "Backend services in modules/services/ with modules.js registry"
+    },
+    "bundles": {
+      "when": "When piece/widget/page are related (e.g., blog piece + blog-page + blog-widget)",
+      "structure": "Create bundle directory with modules.js listing sub-modules",
+      "naming": "Use -module suffix for bundles (e.g., blog-module)"
+    },
+    "modulesJs": {
+      "syntax": "Always use ESM: export default { ... }",
+      "format": "Object with module names as keys, empty objects as values",
+      "updates": "When adding new module, add to appropriate modules.js",
+      "organization": "Keep alphabetically sorted for readability"
+    }
+  },
+
+  "codeGeneratorImplications": {
+    "widgets": {
+      "createIn": "modules/widgets/{widget-name}/",
+      "thenUpdate": "modules/widgets/modules.js",
+      "addLine": "'widget-name': {}"
+    },
+    "pieces": {
+      "createIn": "modules/pieces/{piece-name}/",
+      "thenUpdate": "modules/pieces/modules.js",
+      "addLine": "'piece-name': {}"
+    },
+    "pages": {
+      "createIn": "modules/pages/{page-name}/",
+      "thenUpdate": "modules/pages/modules.js",
+      "addLine": "'page-name': {}"
+    },
+    "bundles": {
+      "createIn": "modules/pieces/{bundle-name}/",
+      "createFiles": [
+        "{bundle-name}/index.js (bundle config)",
+        "{bundle-name}/modules.js (sub-modules)",
+        "{bundle-name}/piece-name/index.js",
+        "{bundle-name}/piece-page/index.js",
+        "{bundle-name}/piece-widget/index.js"
+      ],
+      "thenUpdate": "modules/pieces/modules.js",
+      "addLine": "'bundle-name': {}"
+    }
+  },
+
+  "migration": {
+    "fromOldProjects": {
+      "description": "If migrating from Apostrophe 2.x or projects without nestedModuleSubdirs",
+      "steps": [
+        "1. Add nestedModuleSubdirs: true to app.js",
+        "2. Create modules/widgets/modules.js",
+        "3. Move widget registrations from app.js to widgets/modules.js",
+        "4. Create modules/pieces/modules.js",
+        "5. Move piece registrations from app.js to pieces/modules.js",
+        "6. Test to ensure all modules still load"
+      ]
+    }
+  }
+}

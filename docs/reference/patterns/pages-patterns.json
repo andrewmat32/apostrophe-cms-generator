@@ -1,0 +1,299 @@
+{
+  "type": "PAGES",
+  "description": "Complete page type patterns with areas and routing",
+  "moduleSystem": "ESM",
+  
+  "backendConfiguration": {
+    "file": "modules/pages/{page-type-name}/index.js",
+    "syntax": "export default { ... }",
+    "structure": {
+      "extend": {
+        "value": "@apostrophecms/page-type",
+        "required": true,
+        "description": "Always extends the base page type"
+      },
+      "options": {
+        "label": "Display name for page type (e.g., 'Free Content Page')",
+        "description": "Optional description of the page type's purpose"
+      },
+      "fields": {
+        "add": {
+          "description": "Define editable content areas and page-specific fields",
+          "commonPatterns": {
+            "pageHeader": {
+              "type": "area",
+              "label": "Page Header",
+              "options": {
+                "max": 1,
+                "widgets": { "page-header": {} }
+              },
+              "purpose": "Single widget area for page header"
+            },
+            "content": {
+              "type": "area",
+              "label": "Main Content",
+              "options": {
+                "widgets": {
+                  "image": {},
+                  "@apostrophecms/rich-text": {},
+                  "custom-widget": {}
+                }
+              },
+              "purpose": "Main flexible content area"
+            },
+            "sidebarContent": {
+              "type": "area",
+              "label": "Sidebar",
+              "options": {
+                "widgets": { "link": {}, "newsletter-subscription": {} }
+              },
+              "purpose": "Sidebar widgets"
+            },
+            "pageSettings": {
+              "navbarColor": {
+                "type": "select",
+                "label": "Navbar Color",
+                "choices": [
+                  { "label": "White", "value": "white" },
+                  { "label": "Transparent", "value": "transparent" }
+                ],
+                "def": "white"
+              }
+            }
+          }
+        },
+        "group": {
+          "description": "Organize page fields into tabs",
+          "example": {
+            "basics": {
+              "label": "Basics",
+              "fields": ["title", "pageHeader", "content"]
+            },
+            "utility": {
+              "fields": ["navbarColor"]
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "frontendTemplates": {
+    "file": "modules/pages/{page-type-name}/views/page.html",
+    "syntax": "Nunjucks templating",
+    "extends": "Must extend a layout template",
+    
+    "structure": {
+      "basic": "{% extends 'layout.html' %}\n\n{% block main %}\n  <!-- Page content here -->\n{% endblock %}",
+      "withAreas": "{% extends 'layout.html' %}\n\n{% block main %}\n  {% area data.page, 'pageHeader' %}\n  <div class='container'>\n    {% area data.page, 'content' %}\n  </div>\n{% endblock %}"
+    },
+
+    "dataAccess": {
+      "description": "Page field data available via data.page",
+      "patterns": {
+        "pageTitle": "{{ data.page.title }}",
+        "pageSlug": "{{ data.page.slug }}",
+        "pageUrl": "{{ data.page._url }}",
+        "contentArea": "{% area data.page, 'content' %}",
+        "customField": "{{ data.page.navbarColor }}",
+        "parentPage": "{{ data.page._ancestors[0].title }}",
+        "childPages": "{% for child in data.page._children %}{{ child.title }}{% endfor %}"
+      }
+    },
+
+    "areaRendering": {
+      "description": "Areas render all widgets added by editors",
+      "basic": "{% area data.page, 'content' %}",
+      "withClass": "{% area data.page, 'content', { class: 'my-custom-class' } %}",
+      "conditional": "{% if data.page.content.items.length > 0 %}\n  {% area data.page, 'content' %}\n{% endif %}"
+    }
+  },
+
+  "pageHierarchy": {
+    "description": "Pages form a tree structure with parent/child relationships",
+    "homePageSpecial": "The home page (/) is the root of the tree",
+    "urlGeneration": "Page URLs are based on their position in the tree",
+    "examples": {
+      "homePage": "/ → @apostrophecms/home-page",
+      "topLevel": "/about → about-page (child of home)",
+      "nested": "/blog/my-post → blog-page with piece"
+    },
+    "dataAvailable": {
+      "_ancestors": "Array of parent pages from root to current",
+      "_children": "Array of immediate child pages",
+      "_url": "Full URL path to the page",
+      "slug": "URL-friendly identifier",
+      "path": "Full path in the page tree"
+    }
+  },
+
+  "pageTypes": {
+    "standardPage": {
+      "description": "Basic content page with flexible areas",
+      "extend": "@apostrophecms/page-type",
+      "commonUse": "About pages, contact pages, general content"
+    },
+    "homePage": {
+      "description": "Special page type for site root",
+      "extend": "@apostrophecms/home-page",
+      "singleton": "Only one home page exists",
+      "url": "Always at /"
+    },
+    "piecePage": {
+      "description": "Index page for a piece type",
+      "extend": "@apostrophecms/piece-page-type",
+      "purpose": "Displays piece index and handles piece show pages",
+      "example": "Blog index at /blog, individual posts at /blog/post-slug"
+    }
+  },
+
+  "dataFlow": {
+    "description": "How page data flows from creation to display",
+    "steps": [
+      "1. Admin creates page in page tree",
+      "2. Selects page type (determines available widgets/fields)",
+      "3. Adds widgets to content areas",
+      "4. Page is published (live) or kept as draft",
+      "5. URL is auto-generated from slug and tree position",
+      "6. Template receives data.page with all fields",
+      "7. Areas render their widgets in order"
+    ],
+    "routing": {
+      "automatic": "Apostrophe handles all page routing automatically",
+      "urls": "Based on page tree hierarchy",
+      "slugs": "Generated from page title, can be customized"
+    }
+  },
+
+  "realWorldExample": {
+    "name": "Free Content Page",
+    "purpose": "Flexible page type for general content with customizable header",
+    "backend": {
+      "extend": "@apostrophecms/page-type",
+      "options": {
+        "label": "Free Content Page"
+      },
+      "fields": {
+        "navbarColor": {
+          "type": "select",
+          "choices": [
+            { "label": "White", "value": "white" },
+            { "label": "Transparent", "value": "transparent" }
+          ],
+          "def": "white"
+        },
+        "pageHeader": {
+          "type": "area",
+          "max": 1,
+          "widgets": { "page-header": {} }
+        },
+        "content": {
+          "type": "area",
+          "widgets": {
+            "featured-product": {},
+            "image": {},
+            "@apostrophecms/rich-text": {},
+            "newsletter-subscription": { "limit": 1 }
+          }
+        }
+      },
+      "groups": {
+        "basics": ["title", "pageHeader", "content"],
+        "utility": ["navbarColor"]
+      }
+    },
+    "frontend": {
+      "template": "modules/pages/free-content-page/views/page.html",
+      "structure": "{% extends 'layout.html' %}\n{% block main %}\n  <nav class='navbar navbar-{{ data.page.navbarColor }}'>\n  {% area data.page, 'pageHeader' %}\n  <div class='container'>\n    {% area data.page, 'content' %}\n  </div>\n{% endblock %}"
+    },
+    "usage": {
+      "createPage": "Admin → Pages → New Page → Select 'Free Content Page'",
+      "addContent": "Drag widgets from available list into content area",
+      "publish": "Click 'Publish' to make page live",
+      "url": "Automatically generated based on page tree position"
+    }
+  },
+
+  "widgetRestrictions": {
+    "description": "Page types control which widgets can be used in each area",
+    "perArea": {
+      "pageHeader": {
+        "widgets": { "page-header": {} },
+        "max": 1,
+        "purpose": "Only one page-header widget allowed"
+      },
+      "content": {
+        "widgets": {
+          "image": {},
+          "@apostrophecms/rich-text": {},
+          "custom-widget": {}
+        },
+        "purpose": "Multiple widgets, flexible ordering"
+      },
+      "sidebar": {
+        "widgets": {
+          "newsletter-subscription": { "limit": 1 },
+          "link": {}
+        },
+        "purpose": "Sidebar-specific widgets with limits"
+      }
+    },
+    "widgetOptions": {
+      "customClass": "Pass options to widgets: link: { customClass: 'container' }",
+      "limit": "Restrict how many: 'newsletter-subscription': { limit: 1 }",
+      "className": "Add CSS class: '@apostrophecms/rich-text': { className: 'bp-rich-text' }"
+    }
+  },
+
+  "advancedFeatures": {
+    "customRoutes": {
+      "description": "Add custom routes to page types",
+      "example": "routes(self) {\n  return {\n    get: {\n      async '/special-route': async (req) => {\n        return self.sendPage(req, 'special', { custom: 'data' });\n      }\n    }\n  };\n}"
+    },
+    "beforeSend": {
+      "description": "Modify data before rendering template",
+      "example": "async beforeSend(req) {\n  req.data.customData = await fetchExternalData();\n}"
+    },
+    "parkedPages": {
+      "description": "Pre-create pages programmatically",
+      "example": "options: {\n  park: [{\n    slug: '/about',\n    parkedId: 'about',\n    type: 'about-page',\n    title: 'About Us'\n  }]\n}"
+    },
+    "navigation": {
+      "description": "Pages automatically included in navigation",
+      "access": "data.home._children for top-level nav",
+      "filtering": "Filter by type, permissions, visibility settings"
+    }
+  },
+
+  "bestPractices": {
+    "naming": "Use descriptive names: about-page, blog-index-page, contact-page",
+    "location": "Place in modules/pages/{page-type}/",
+    "requiredFiles": ["index.js", "views/page.html"],
+    "areas": "Define areas for flexible content, not hardcoded fields",
+    "widgetLimits": "Use max/limit options to control widget quantity",
+    "groups": "Organize fields into logical tabs for editors",
+    "extends": "Always extend layout.html or appropriate base template",
+    "urls": "Let Apostrophe handle routing, avoid custom URL logic",
+    "seo": "Use @apostrophecms/seo module for meta fields",
+    "permissions": "Use page-level permissions for access control"
+  },
+
+  "commonPageTypes": {
+    "flexibleContent": {
+      "name": "Default Page",
+      "purpose": "General content with multiple widget areas",
+      "fields": ["pageHeader", "content", "sidebar"]
+    },
+    "landingPage": {
+      "name": "Landing Page",
+      "purpose": "Marketing pages with specific widget layouts",
+      "fields": ["hero", "features", "testimonials", "cta"]
+    },
+    "blogIndex": {
+      "name": "Blog Page",
+      "extend": "@apostrophecms/piece-page-type",
+      "purpose": "Lists blog pieces, shows individual posts",
+      "automatic": "Handles /blog and /blog/post-slug routing"
+    }
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "type": "WIDGETS",
+  "description": "Complete widget patterns with data flow from backend to frontend",
+  "moduleSystem": "ESM",
+  
+  "backendConfiguration": {
+    "file": "modules/widgets/{widget-name}/index.js",
+    "syntax": "export default { ... }",
+    "structure": {
+      "extend": {
+        "value": "@apostrophecms/widget-type",
+        "required": true,
+        "description": "Always extends the base widget type"
+      },
+      "options": {
+        "label": "Display name shown in editor UI",
+        "icon": "Optional icon identifier (e.g., 'image-icon')",
+        "description": "Optional widget description"
+      },
+      "fields": {
+        "add": {
+          "description": "Define all editable fields for the widget",
+          "fieldTypes": {
+            "string": {
+              "example": {
+                "question": {
+                  "label": "Question",
+                  "type": "string",
+                  "required": true
+                }
+              },
+              "dataAccess": "data.widget.question"
+            },
+            "area": {
+              "description": "Rich content area that can contain other widgets",
+              "example": {
+                "content": {
+                  "label": "Content",
+                  "type": "area",
+                  "options": {
+                    "widgets": {
+                      "@apostrophecms/rich-text": {},
+                      "@apostrophecms/image": {}
+                    }
+                  }
+                }
+              },
+              "dataAccess": "{% area data.widget, 'content' %} OR data.widget.content.items[]"
+            },
+            "select": {
+              "example": {
+                "imageType": {
+                  "label": "Image Type",
+                  "type": "select",
+                  "choices": [
+                    {
+                      "label": "Content Image",
+                      "value": "contentImage"
+                    },
+                    {
+                      "label": "Full Width Image",
+                      "value": "fullWidthImage"
+                    }
+                  ]
+                }
+              },
+              "dataAccess": "data.widget.imageType"
+            },
+            "checkboxes": {
+              "example": {
+                "extendMobileBottom": {
+                  "label": "Extend image bottom on mobile",
+                  "type": "checkboxes",
+                  "choices": [
+                    {
+                      "label": "Extend",
+                      "value": "mobile-button-extend"
+                    }
+                  ]
+                }
+              },
+              "dataAccess": "data.widget.extendMobileBottom"
+            },
+            "date": {
+              "example": {
+                "articleDate": {
+                  "label": "Article date",
+                  "type": "date",
+                  "pikadayOptions": {
+                    "format": "YYYY-MM-DD"
+                  }
+                }
+              },
+              "dataAccess": "data.widget.articleDate"
+            }
+          }
+        },
+        "group": {
+          "description": "Organize fields into tabs/sections in the editor UI",
+          "example": {
+            "basics": {
+              "label": "Basics",
+              "fields": ["image", "imageType", "imageStyle"]
+            },
+            "textAndLinks": {
+              "label": "Text and links",
+              "fields": ["text", "links"]
+            }
+          }
+        }
+      },
+      "conditionalFields": {
+        "description": "Show/hide fields based on other field values",
+        "syntax": "if: { fieldName: 'value' }",
+        "example": {
+          "imagePosition": {
+            "type": "select",
+            "if": {
+              "imageType": "contentImage"
+            }
+          }
+        },
+        "advancedExample": {
+          "text": {
+            "type": "area",
+            "if": {
+              "$or": [
+                { "imageType": "contentImage" },
+                { "imageType": "fullWidthImage" }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "frontendTemplates": {
+    "file": "modules/widgets/{widget-name}/views/widget.html",
+    "syntax": "Nunjucks templating",
+    
+    "dataAccess": {
+      "description": "All widget field data is available via data.widget",
+      "patterns": {
+        "simpleField": {
+          "backend": "title: { type: 'string', label: 'Title' }",
+          "frontend": "{{ data.widget.title }}",
+          "example": "<h1>{{ data.widget.title }}</h1>"
+        },
+        "areaField": {
+          "backend": "content: { type: 'area', options: { widgets: {...} } }",
+          "frontend": "{% area data.widget, 'content' %}",
+          "example": "{% area data.widget, 'content' %}",
+          "description": "Renders all widgets within the area"
+        },
+        "areaItems": {
+          "backend": "images: { type: 'area', options: { max: 1, widgets: { '@apostrophecms/image': {} } } }",
+          "frontend": "data.widget.images.items[]",
+          "example": "{% for item in data.widget.images.items %}...{% endfor %}"
+        },
+        "selectField": {
+          "backend": "imageType: { type: 'select', choices: [...] }",
+          "frontend": "{{ data.widget.imageType }}",
+          "example": "{% if data.widget.imageType == 'fullWidthImage' %}...{% endif %}"
+        }
+      }
+    },
+
+    "nunjucksPatterns": {
+      "conditionals": {
+        "simple": "{% if data.widget.title %}...{% endif %}",
+        "comparison": "{% if data.widget.imageType == 'contentImage' %}...{% endif %}",
+        "elseif": "{% if condition %}...{% elseif other %}...{% else %}...{% endif %}"
+      },
+      "loops": {
+        "basic": "{% for item in data.widget.items %}{{ item.title }}{% endfor %}",
+        "withIndex": "{% for item in data.widget.items %}{{ loop.index }}: {{ item.title }}{% endfor %}",
+        "areaWidgets": "{% for item in data.widget.content.items %}{% if item.type == '@apostrophecms/image' %}...{% endif %}{% endfor %}"
+      },
+      "filters": {
+        "safe": "{{ data.widget.content | safe }}",
+        "description": "Renders HTML without escaping"
+      },
+      "variables": {
+        "set": "{% set firstImage = apos.image.first( data.widget.firstImage ) %}",
+        "use": "{{ firstImage._alt }}"
+      },
+      "imports": {
+        "macro": "{% import '/macros/rating.html' as ratingMacro %}",
+        "fragment": "{% import '/fragments/link-widget.html' as linkWidgetFragment %}",
+        "render": "{% render linkWidgetFragment.linkWidgetUrl( item ) %}"
+      }
+    },
+
+    "apostropheHelpers": {
+      "image": {
+        "first": "{% set img = apos.image.first( data.widget.imageArea ) %}",
+        "url": "{{ apos.attachment.url( img, { size: 'full' } ) }}",
+        "sizes": ["one-sixth", "one-third", "one-half", "two-thirds", "full", "max"],
+        "alt": "{{ img._alt }}"
+      },
+      "area": {
+        "render": "{% area data.widget, 'fieldName' %}",
+        "description": "Renders all widgets in an area field"
+      },
+      "global": {
+        "formatUrl": "{{ apos.global.formatUrl( url ) }}",
+        "description": "Formats URLs with proper locale/domain"
+      }
+    }
+  },
+
+  "dataFlow": {
+    "description": "How data flows from backend config to frontend display",
+    "steps": [
+      "1. Editor fills in widget fields in admin UI",
+      "2. Apostrophe stores field data in database",
+      "3. When page renders, data is passed to template as 'data.widget'",
+      "4. Template accesses fields via data.widget.fieldName",
+      "5. Nunjucks processes conditionals, loops, and outputs HTML"
+    ],
+    "example": {
+      "backend": "fields: { add: { title: { type: 'string' }, image: { type: 'area' } } }",
+      "storage": "{ title: 'My Title', image: { items: [...] } }",
+      "template": "{{ data.widget.title }} + {% area data.widget, 'image' %}",
+      "output": "<h1>My Title</h1><div class='apos-area'>...</div>"
+    }
+  },
+
+  "realWorldExamples": {
+    "simpleWidget": {
+      "name": "FAQ Widget",
+      "backend": {
+        "fields": {
+          "question": { "type": "string", "required": true },
+          "answer": { "type": "area", "widgets": { "@apostrophecms/rich-text": {} } }
+        }
+      },
+      "frontend": "<div>\n  <span>{{ data.widget.question }}</span>\n  <p>{{ data.widget.answer.items[0].content | safe }}</p>\n</div>"
+    },
+    "complexWidget": {
+      "name": "Image Widget",
+      "features": [
+        "Conditional fields (imagePosition only shows if imageType is 'contentImage')",
+        "Field groups (basics, textAndLinks, aboutSection)",
+        "Multiple select fields with choices",
+        "Area fields with widget restrictions",
+        "Help text and htmlHelp for documentation"
+      ],
+      "backend": {
+        "conditionals": "imagePosition.if = { imageType: 'contentImage' }",
+        "groups": "group: { basics: { fields: ['image', 'imageType'] } }"
+      },
+      "frontend": {
+        "imports": "{% import '/fragments/image.html' as imageFragment %}",
+        "render": "{% render imageFragment.image( data.widget ) %}"
+      }
+    },
+    "advancedWidget": {
+      "name": "Home Page Header Widget",
+      "features": [
+        "Multiple image areas",
+        "Complex conditional logic with $or",
+        "Loop through global navigation items",
+        "HTMX integration for dynamic forms",
+        "Alpine.js for client interactions",
+        "Responsive image sources with srcset"
+      ],
+      "frontend": {
+        "variables": "{% set firstImage = apos.image.first( data.widget.firstImage ) %}",
+        "responsiveImages": "<picture>\n  <source srcset='{{ apos.attachment.url( img, { size: 'max' } ) }}' media='(min-width: 1440px)'>\n  <img src='{{ apos.attachment.url( img, { size: 'one-third' } ) }}'>\n</picture>",
+        "loops": "{% for item in data.global.mainLinks.items %}",
+        "htmx": "<div hx-post='/getOfferPopup' hx-target='#fs-popup-wrapper'>"
+      }
+    }
+  },
+
+  "bestPractices": {
+    "naming": "Use {name}-widget format (e.g., hero-banner-widget)",
+    "location": "Place in modules/widgets/{widget-name}/",
+    "requiredFiles": ["index.js", "views/widget.html"],
+    "optionalFiles": ["ui/src/*.js (client-side JS)", "ui/src/*.scss (styles)"],
+    "fieldOrganization": "Use field groups to organize related fields in the UI",
+    "conditionals": "Use 'if' to show/hide fields based on other selections",
+    "areas": "Use areas for rich content that needs multiple widget types",
+    "help": "Add 'help' text for simple hints, 'htmlHelp' for rich documentation"
+  }
+}

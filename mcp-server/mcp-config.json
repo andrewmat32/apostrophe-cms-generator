@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "apostrophe-generator": {
+      "command": "node",
+      "args": ["<PATH_TO_THIS_FOLDER>/index.js"],
+      "env": {},
+      "description": "Apostrophe CMS code generation tools - Replace <PATH_TO_THIS_FOLDER> with the absolute path to this mcp-server folder"
+    }
+  }
+}
