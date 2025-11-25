@@ -83,6 +83,36 @@ To verify Claude Code is installed correctly:
 claude --version
 ```
 
+### ESM (ES Modules) Requirement
+
+**Important:** This tool generates code using **ES Module syntax** (`export default`) rather than CommonJS (`module.exports`). Your Apostrophe project must be configured for ESM.
+
+Ensure your project's `package.json` contains:
+```json
+{
+  "type": "module"
+}
+```
+
+**Generated code syntax:**
+```javascript
+// ✅ This tool generates (ESM):
+export default {
+  extend: '@apostrophecms/widget-type',
+  fields: { ... }
+};
+
+// ❌ NOT CommonJS:
+module.exports = {
+  extend: '@apostrophecms/widget-type',
+  fields: { ... }
+};
+```
+
+If your project uses CommonJS, you'll need to either:
+1. **Convert to ESM** (recommended for Apostrophe 3.x/4.x)
+2. Manually convert generated `export default` to `module.exports`
+
 ### Apostrophe CMS Projects
 
 The tool automatically discovers Apostrophe CMS projects in the **parent directory**. A folder is recognized as an Apostrophe project if it contains an `app.js` file with a `shortName` property.
