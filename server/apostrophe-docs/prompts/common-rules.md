@@ -154,8 +154,8 @@ group: {
 When adding area fields for rich content:
 
 **CRITICAL - Widget References**:
-- When referencing custom widgets in area configs, ALWAYS use the full widget name with `-widget` suffix
-- Example: `'hero-widget': {}` NOT `'hero': {}`
+- When referencing custom widgets in area configs, ALWAYS remove the `-widget` suffix
+- Example: `'hero': {}` NOT `'hero-widget': {}`
 
 ```javascript
 content: {
@@ -165,8 +165,8 @@ content: {
     widgets: {
       '@apostrophecms/rich-text': {},
       '@apostrophecms/image': {},
-      'hero-widget': {},           // ✅ CORRECT - includes -widget
-      'product-widget': {}          // ✅ CORRECT - includes -widget
+      'hero': {},           // ✅ CORRECT
+      'product': {}          // ✅ CORRECT
     }
   }
 }
@@ -175,8 +175,8 @@ content: {
 **WRONG**:
 ```javascript
 widgets: {
-  'hero': {},        // ❌ WRONG - missing -widget suffix
-  'product': {}      // ❌ WRONG - missing -widget suffix
+  'hero-widget': {},        // ❌ WRONG - includes -widget suffix
+  'product-widget': {}      // ❌ WRONG - includes -widget suffix
 }
 ```
 

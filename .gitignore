@@ -1,0 +1,6 @@
+/history
+/mcp-server/node_modules
+
+/node_modules
+# Mac OS specific
+.DS_Store
