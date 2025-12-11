@@ -99,7 +99,7 @@ export default {
 - Arrays: `{% for item in data.widget.arrayName %}`
 {BEM_CLASSES}
 - NO extra content not related to schema fields
-- Add `data-{widget-name}` attribute to root element for frontend JS (use full widget name with -widget)
+- Add `data-{widget-name}` attribute to root element for frontend JS (use full widget name with `-widget`)
 
 {BEM_GUIDANCE}
 

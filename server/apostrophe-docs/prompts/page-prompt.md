@@ -9,8 +9,8 @@ You are generating an Apostrophe CMS page module{BUNDLE_CONTEXT}.
 - ONLY return files for THIS page module: {MODULE_NAME}
 - If part of a bundle, the piece already exists - just reference it
 - **Widget names in area configs are REFERENCES ONLY** - don't create those widgets
-- **ALWAYS use full widget name with -widget suffix** in area configs: `'hero-widget': {}` NOT `'hero': {}`
-- Area configs like `'custom-filter-widget': {}` mean "allow this widget" - the widget exists elsewhere
+- **ALWAYS use widget name without `-widget` suffix** in area configs: `'hero': {}` NOT `'hero-widget': {}`
+- Area configs like `'custom-filter': {}` mean "allow this widget" - the widget exists elsewhere
 
 ## ⚠️ IMPORTANT: Page Registration Required
 
@@ -139,7 +139,7 @@ export default {
           widgets: {
             '@apostrophecms/rich-text': {},
             '@apostrophecms/image': {},
-            'custom-widget': {}
+            'custom': {}
           }
         }
       }
